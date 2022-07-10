@@ -35,7 +35,6 @@ android {
 
 dependencies {
     api 'com.tencent.mm.opensdk:wechat-sdk-android:6.8.11'
-    implementation 'androidx.core:core:1.8.0'
 }
 
 task generateSourcesJar(type: Jar) {
