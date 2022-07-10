@@ -91,7 +91,12 @@ object FSocialWechatShareApi {
                 FSocialWechat.wxapi.sendReq(req)
             } else {
                 _coroutineScope.launch {
-                    message.thumbData = downloadImage(imageUrl)
+                    message.thumbData = try {
+                        downloadImage(imageUrl)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
                     FSocialWechat.wxapi.sendReq(req)
                 }
             }
