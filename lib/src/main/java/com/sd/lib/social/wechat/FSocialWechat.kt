@@ -27,12 +27,10 @@ object FSocialWechat {
             synchronized(this@FSocialWechat) {
                 val api = _wxapi
                 if (api != null) return api
-
-                val id = appId
-                return WXAPIFactory.createWXAPI(context, id, true).also {
+                val appId = appId
+                return WXAPIFactory.createWXAPI(context, appId, true).also {
                     _wxapi = it
-                    it.registerApp(id)
-                    _broadcastReceiver.register()
+                    it.registerApp(appId)
                 }
             }
         }
@@ -44,6 +42,7 @@ object FSocialWechat {
         synchronized(this@FSocialWechat) {
             _context = context.applicationContext as Application
             _appSecret = appSecret
+            _broadcastReceiver.register()
             if (_appId != appId) {
                 _appId = appId
                 _wxapi?.unregisterApp()
