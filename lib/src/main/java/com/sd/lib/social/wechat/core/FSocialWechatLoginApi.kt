@@ -103,7 +103,29 @@ object FSocialWechatLoginApi {
                         )
                     }.let {
                         notifySuccess(it)
+                        val refreshToken = response.optString("refresh_token")
+                        refreshToken(refreshToken)
                     }
+                }
+            }
+        }
+    }
+
+    private fun refreshToken(refreshToken: String) {
+        if (refreshToken.isEmpty()) return
+        val url = with(FSocialWechat) {
+            "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=${appId}&grant_type=refresh_token&refresh_token=${refreshToken}"
+        }
+        _coroutineScope.launch {
+            val request = HttpRequest.get(url).apply {
+                trustAllCerts()
+                trustAllHosts()
+            }
+            withContext(Dispatchers.IO) {
+                try {
+                    request.body()
+                } catch (e: HttpRequest.HttpRequestException) {
+                    e.printStackTrace()
                 }
             }
         }
