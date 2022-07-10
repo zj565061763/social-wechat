@@ -16,7 +16,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
-import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -145,7 +144,7 @@ object FSocialWechatShareApi {
 private suspend fun downloadImage(url: String): ByteArray? {
     val request = ImageRequest.Builder(FSocialWechat.context)
         .data(url)
-        .size(200, 200)
+        .size(150, 150)
         .build()
     val drawable = FSocialWechat.context.imageLoader.execute(request).drawable ?: return null
     val bitmap = if (drawable is BitmapDrawable) {
@@ -159,28 +158,14 @@ private suspend fun downloadImage(url: String): ByteArray? {
 
 private suspend fun Bitmap.compressToLegalSize(): ByteArray {
     return withContext(Dispatchers.IO) {
-        if (isMutable) {
-            if (width > 200) width = 200
-            if (height > 200) height = 200
-        }
-        if (byteCount <= WXMediaMessage.THUMB_LENGTH_LIMIT) {
-            toByteArray()
-        } else {
-            val baos = ByteArrayOutputStream()
-            for (quality in 90 downTo 0 step 10) {
-                baos.reset()
-                compress(Bitmap.CompressFormat.WEBP, quality, baos)
-                if (baos.size() <= WXMediaMessage.THUMB_LENGTH_LIMIT) {
-                    break
-                }
+        val baos = ByteArrayOutputStream()
+        for (quality in 100 downTo 0 step 10) {
+            baos.reset()
+            compress(Bitmap.CompressFormat.WEBP, quality, baos)
+            if (baos.size() <= WXMediaMessage.THUMB_LENGTH_LIMIT) {
+                break
             }
-            baos.toByteArray()
         }
+        baos.toByteArray()
     }
-}
-
-private fun Bitmap.toByteArray(): ByteArray {
-    return ByteBuffer.allocate(byteCount).also {
-        copyPixelsToBuffer(it)
-    }.array()
 }
