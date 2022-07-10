@@ -36,7 +36,7 @@ android {
 dependencies {
     api 'com.tencent.mm.opensdk:wechat-sdk-android:6.8.11'
     implementation 'com.github.kevinsawicki:http-request:6.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3'
+    implementation 'io.coil-kt:coil:2.1.0'
 }
 
 task generateSourcesJar(type: Jar) {

@@ -1,5 +1,9 @@
 package com.sd.lib.social.wechat.core
 
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import coil.imageLoader
+import coil.request.ImageRequest
 import com.sd.lib.social.wechat.FSocialWechat
 import com.sd.lib.social.wechat.model.WechatShareResult
 import com.tencent.mm.opensdk.constants.ConstantsAPI
@@ -7,6 +11,10 @@ import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.modelmsg.SendMessageToWX
 import com.tencent.mm.opensdk.modelmsg.WXMediaMessage
 import com.tencent.mm.opensdk.modelmsg.WXWebpageObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -16,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 object FSocialWechatShareApi {
     private val _isShare = AtomicBoolean(false)
     private var _shareCallback: ShareCallback? = null
+
+    private val _coroutineScope = MainScope()
 
     /**
      * 分享url
@@ -75,8 +85,15 @@ object FSocialWechatShareApi {
                 this.message = message
                 this.scene = scene
             }
-            // TODO 压缩图片
-            FSocialWechat.wxapi.sendReq(req)
+
+            if (imageUrl.isEmpty()) {
+                FSocialWechat.wxapi.sendReq(req)
+            } else {
+                _coroutineScope.launch {
+                    message.thumbData = downloadImage(imageUrl)
+                    FSocialWechat.wxapi.sendReq(req)
+                }
+            }
         }
     }
 
@@ -121,4 +138,41 @@ object FSocialWechatShareApi {
 
         fun onCancel()
     }
+}
+
+private suspend fun downloadImage(url: String): ByteArray? {
+    val request = ImageRequest.Builder(FSocialWechat.context)
+        .data(url)
+        .build()
+    val drawable = FSocialWechat.context.imageLoader.execute(request).drawable ?: return null
+
+    val bitmap = if (drawable !is BitmapDrawable) {
+        // TODO Drawable -> Bitmap
+        null
+    } else {
+        drawable.bitmap
+    } ?: return null
+
+    return with(bitmap.compressToLegalSize()) {
+        // TODO Bitmap -> ByteArray
+        null
+    }
+}
+
+private suspend fun Bitmap.compressToLegalSize(): Bitmap {
+    if (isLegalSize()) return this
+    return withContext(Dispatchers.IO) {
+        var resultBitmap = this@compressToLegalSize
+        for (size in 200 downTo 40 step 20) {
+            resultBitmap = Bitmap.createScaledBitmap(this@compressToLegalSize, size, size, false)
+            if (resultBitmap.isLegalSize()) {
+                break
+            }
+        }
+        resultBitmap
+    }
+}
+
+private fun Bitmap.isLegalSize(): Boolean {
+    return byteCount <= WXMediaMessage.THUMB_LENGTH_LIMIT
 }
