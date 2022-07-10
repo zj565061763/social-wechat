@@ -27,6 +27,8 @@ object FSocialWechatShareApi {
         title: String,
         /** 描述 */
         description: String,
+        /** 图片url，在线url或者本地路径 */
+        imageUrl: String = "",
         /** 是否发送到朋友圈 */
         isTimeline: Boolean = false,
         /** 回调 */
@@ -37,6 +39,7 @@ object FSocialWechatShareApi {
             targetUrl = targetUrl,
             title = title,
             description = description,
+            imageUrl = imageUrl,
             callback = callback,
         )
     }
@@ -52,6 +55,8 @@ object FSocialWechatShareApi {
         title: String,
         /** 描述 */
         description: String,
+        /** 图片url，在线url或者本地路径 */
+        imageUrl: String = "",
         /** 回调 */
         callback: ShareCallback,
     ) {
@@ -70,6 +75,7 @@ object FSocialWechatShareApi {
                 this.message = message
                 this.scene = scene
             }
+            // TODO 压缩图片
             FSocialWechat.wxapi.sendReq(req)
         }
     }
