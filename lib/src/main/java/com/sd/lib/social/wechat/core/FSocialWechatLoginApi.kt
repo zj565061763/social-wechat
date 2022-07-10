@@ -123,7 +123,9 @@ object FSocialWechatLoginApi {
             }
             withContext(Dispatchers.IO) {
                 try {
-                    request.body()
+                    request.body().let {
+                        it.length
+                    }
                 } catch (e: HttpRequest.HttpRequestException) {
                     e.printStackTrace()
                 }
