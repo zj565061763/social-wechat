@@ -2,6 +2,8 @@ package com.sd.lib.social.wechat.core
 
 import com.sd.lib.social.wechat.FSocialWechat
 import com.sd.lib.social.wechat.model.WechatShareResult
+import com.tencent.mm.opensdk.constants.ConstantsAPI
+import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.modelmsg.SendMessageToWX
 import com.tencent.mm.opensdk.modelmsg.WXMediaMessage
 import com.tencent.mm.opensdk.modelmsg.WXWebpageObject
@@ -70,6 +72,40 @@ object FSocialWechatShareApi {
             }
             FSocialWechat.wxapi.sendReq(req)
         }
+    }
+
+    internal fun handleResponse(resp: BaseResp) {
+        if (resp.type != ConstantsAPI.COMMAND_SENDMESSAGE_TO_WX) {
+            // 不是登录授权的结果，不处理
+            return
+        }
+        when (resp.errCode) {
+            BaseResp.ErrCode.ERR_OK -> {
+
+            }
+            BaseResp.ErrCode.ERR_USER_CANCEL -> notifyCancel()
+            else -> notifyError(resp.errCode, resp.errStr)
+        }
+    }
+
+    private fun notifySuccess(result: WechatShareResult) {
+        _shareCallback?.onSuccess(result)
+        resetState()
+    }
+
+    private fun notifyError(code: Int, message: String) {
+        _shareCallback?.onError(code, message)
+        resetState()
+    }
+
+    private fun notifyCancel() {
+        _shareCallback?.onCancel()
+        resetState()
+    }
+
+    private fun resetState() {
+        _shareCallback = null
+        _isShare.set(false)
     }
 
     interface ShareCallback {

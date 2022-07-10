@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import com.sd.lib.social.wechat.FSocialWechat
 import com.sd.lib.social.wechat.core.FSocialWechatLoginApi
+import com.sd.lib.social.wechat.core.FSocialWechatShareApi
 import com.tencent.mm.opensdk.modelbase.BaseReq
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler
@@ -30,5 +31,6 @@ open class FWechatCallbackActivity : Activity(), IWXAPIEventHandler {
 
     override fun onResp(resp: BaseResp) {
         FSocialWechatLoginApi.handleResponse(resp)
+        FSocialWechatShareApi.handleResponse(resp)
     }
 }

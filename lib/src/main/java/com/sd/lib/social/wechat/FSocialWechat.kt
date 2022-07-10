@@ -54,7 +54,7 @@ object FSocialWechat {
     }
 
     /**
-     * 微信是否已经安装
+     * 微信是否已安装
      */
     fun isWechatInstalled(): Boolean {
         return wxapi.isWXAppInstalled
