@@ -55,7 +55,7 @@ object FSocialWechatLoginApi {
 
     internal fun handleResponse(resp: BaseResp) {
         if (resp.type != ConstantsAPI.COMMAND_SENDAUTH) {
-            // 不是登录授权的结果，不处理
+            // 不是登录授权结果，不处理
             return
         }
         when (resp.errCode) {

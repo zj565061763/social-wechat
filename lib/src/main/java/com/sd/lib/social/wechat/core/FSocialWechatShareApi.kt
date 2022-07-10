@@ -100,7 +100,7 @@ object FSocialWechatShareApi {
 
     internal fun handleResponse(resp: BaseResp) {
         if (resp.type != ConstantsAPI.COMMAND_SENDMESSAGE_TO_WX) {
-            // 不是登录授权的结果，不处理
+            // 不是分享消息结果，不处理
             return
         }
         when (resp.errCode) {
