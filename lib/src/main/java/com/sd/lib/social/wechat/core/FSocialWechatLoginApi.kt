@@ -123,7 +123,7 @@ object FSocialWechatLoginApi {
             }
             withContext(Dispatchers.IO) {
                 try {
-                    request.body().let {
+                    request.body().also {
                         it.length
                     }
                 } catch (e: HttpRequest.HttpRequestException) {
