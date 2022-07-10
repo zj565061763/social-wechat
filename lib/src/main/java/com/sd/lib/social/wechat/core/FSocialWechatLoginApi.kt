@@ -72,7 +72,10 @@ object FSocialWechatLoginApi {
     }
 
     private fun getToken(code: String) {
-        // TODO 获取token
+        with(FSocialWechat) {
+            val url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${appSecret}&code=${code}&grant_type=authorization_code"
+            // TODO 获取token
+        }
     }
 
     private fun resetState() {

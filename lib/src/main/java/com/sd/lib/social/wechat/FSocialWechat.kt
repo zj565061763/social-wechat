@@ -22,6 +22,9 @@ object FSocialWechat {
     internal val appId: String
         get() = _appId.also { check(it.isNotEmpty()) { "You should init before this" } }
 
+    internal val appSecret: String
+        get() = _appSecret.also { check(it.isNotEmpty()) { "You should init before this" } }
+
     val wxapi: IWXAPI
         get() {
             synchronized(this@FSocialWechat) {
