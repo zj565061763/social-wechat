@@ -15,6 +15,9 @@ import java.net.URLEncoder
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
+/**
+ * 登录
+ */
 object FSocialWechatLoginApi {
     private val _isLogin = AtomicBoolean(false)
     private var _loginCallback: LoginCallback? = null
@@ -23,6 +26,9 @@ object FSocialWechatLoginApi {
 
     private val _coroutineScope = MainScope()
 
+    /**
+     * 登录
+     */
     @JvmStatic
     @JvmOverloads
     fun login(
