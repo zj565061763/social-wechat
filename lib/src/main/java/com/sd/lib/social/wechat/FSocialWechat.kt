@@ -53,6 +53,13 @@ object FSocialWechat {
         }
     }
 
+    /**
+     * 微信是否已经安装
+     */
+    fun isWechatInstalled(): Boolean {
+        return wxapi.isWXAppInstalled
+    }
+
     private val _broadcastReceiver = object : BroadcastReceiver() {
         private val _hasRegister = AtomicBoolean(false)
 
