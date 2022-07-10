@@ -6,6 +6,7 @@ import com.tencent.mm.opensdk.constants.ConstantsAPI
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.modelmsg.SendAuth
 import java.net.URLEncoder
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 object FSocialWechatLoginApi {
@@ -27,11 +28,12 @@ object FSocialWechatLoginApi {
             _loginCallback = callback
             _getToken = getToken
             with(FSocialWechat.wxapi) {
+                val reqId = URLEncoder.encode(UUID.randomUUID().toString()).also {
+                    _reqId = it
+                }
                 val req = SendAuth.Req().apply {
                     scope = "snsapi_userinfo"
-                    state = "wechat_sdk_demo_test"
-                }.also {
-                    _reqId = URLEncoder.encode(it.toString())
+                    state = reqId
                 }
                 sendReq(req);
             }
