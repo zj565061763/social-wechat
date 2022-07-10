@@ -12,7 +12,7 @@
     <application>
 
         <activity
-            android:name=".activity.wxapi.FWechatCallbackActivity"
+            android:name=".wxapi.FWechatCallbackActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:taskAffinity="${applicationId}"

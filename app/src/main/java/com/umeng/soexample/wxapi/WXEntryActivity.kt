@@ -1,6 +1,6 @@
 package com.umeng.soexample.wxapi
 
-import com.sd.lib.social.wechat.activity.wxapi.FWechatCallbackActivity
+import com.sd.lib.social.wechat.wxapi.FWechatCallbackActivity
 import com.tencent.mm.opensdk.modelbase.BaseResp
 
 class WXEntryActivity : FWechatCallbackActivity() {

@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onCancel() {
                     Log.i(TAG, "login onCancel")
                 }
-            }, getToken = false)
+            })
         }
 
         // 分享

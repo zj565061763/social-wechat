@@ -1,4 +1,4 @@
-package com.sd.lib.social.wechat.activity.wxapi
+package com.sd.lib.social.wechat.wxapi
 
 import android.app.Activity
 import android.content.Intent
