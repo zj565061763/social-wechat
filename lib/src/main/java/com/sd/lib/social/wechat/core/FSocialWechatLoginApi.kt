@@ -48,7 +48,7 @@ object FSocialWechatLoginApi {
                     scope = "snsapi_userinfo"
                     state = reqId
                 }
-                sendReq(req);
+                sendReq(req)
             }
         }
     }
