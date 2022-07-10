@@ -24,13 +24,16 @@ object FSocialWechat {
 
     val wxapi: IWXAPI
         get() {
-            val api = _wxapi
-            if (api != null) return api
-            val id = appId
-            return WXAPIFactory.createWXAPI(context, id, true).also {
-                _wxapi = it
-                it.registerApp(id)
-                _broadcastReceiver.register()
+            synchronized(this@FSocialWechat) {
+                val api = _wxapi
+                if (api != null) return api
+
+                val id = appId
+                return WXAPIFactory.createWXAPI(context, id, true).also {
+                    _wxapi = it
+                    it.registerApp(id)
+                    _broadcastReceiver.register()
+                }
             }
         }
 
@@ -38,13 +41,14 @@ object FSocialWechat {
     fun init(context: Context, appId: String, appSecret: String) {
         require(appId.isNotEmpty()) { "appId is empty" }
         require(appSecret.isNotEmpty()) { "appSecret is empty" }
-        _context = context.applicationContext as Application
-        _appSecret = appSecret
-
-        if (_appId != appId) {
-            _appId = appId
-            _wxapi?.unregisterApp()
-            _wxapi = null
+        synchronized(this@FSocialWechat) {
+            _context = context.applicationContext as Application
+            _appSecret = appSecret
+            if (_appId != appId) {
+                _appId = appId
+                _wxapi?.unregisterApp()
+                _wxapi = null
+            }
         }
     }
 
