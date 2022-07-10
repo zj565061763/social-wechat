@@ -30,7 +30,6 @@ object FSocialWechat {
             synchronized(this@FSocialWechat) {
                 val api = _wxapi
                 if (api != null) return api
-                val appId = appId
                 return WXAPIFactory.createWXAPI(context, appId, true).also {
                     _wxapi = it
                     it.registerApp(appId)
