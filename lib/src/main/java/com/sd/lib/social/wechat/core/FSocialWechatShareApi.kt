@@ -145,14 +145,13 @@ object FSocialWechatShareApi {
 private suspend fun downloadImage(url: String): ByteArray? {
     val request = ImageRequest.Builder(FSocialWechat.context)
         .data(url)
+        .size(200, 200)
         .build()
     val drawable = FSocialWechat.context.imageLoader.execute(request).drawable ?: return null
-
-    val bitmap = if (drawable !is BitmapDrawable) {
-        // TODO Drawable -> Bitmap
-        null
-    } else {
+    val bitmap = if (drawable is BitmapDrawable) {
         drawable.bitmap
+    } else {
+        null
     } ?: return null
 
     return bitmap.compressToLegalSize()
@@ -160,8 +159,10 @@ private suspend fun downloadImage(url: String): ByteArray? {
 
 private suspend fun Bitmap.compressToLegalSize(): ByteArray {
     return withContext(Dispatchers.IO) {
-        if (width > 200) width = 200
-        if (height > 200) height = 200
+        if (isMutable) {
+            if (width > 200) width = 200
+            if (height > 200) height = 200
+        }
         if (byteCount <= WXMediaMessage.THUMB_LENGTH_LIMIT) {
             toByteArray()
         } else {
