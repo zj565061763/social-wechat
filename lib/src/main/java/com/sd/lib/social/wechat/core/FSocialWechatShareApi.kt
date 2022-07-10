@@ -81,7 +81,7 @@ object FSocialWechatShareApi {
         }
         when (resp.errCode) {
             BaseResp.ErrCode.ERR_OK -> {
-
+                notifySuccess(WechatShareResult())
             }
             BaseResp.ErrCode.ERR_USER_CANCEL -> notifyCancel()
             else -> notifyError(resp.errCode, resp.errStr)
