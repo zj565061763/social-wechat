@@ -15,6 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -153,26 +155,31 @@ private suspend fun downloadImage(url: String): ByteArray? {
         drawable.bitmap
     } ?: return null
 
-    return with(bitmap.compressToLegalSize()) {
-        // TODO Bitmap -> ByteArray
-        null
-    }
+    return bitmap.compressToLegalSize()
 }
 
-private suspend fun Bitmap.compressToLegalSize(): Bitmap {
-    if (isLegalSize()) return this
+private suspend fun Bitmap.compressToLegalSize(): ByteArray {
     return withContext(Dispatchers.IO) {
-        var resultBitmap = this@compressToLegalSize
-        for (size in 200 downTo 40 step 20) {
-            resultBitmap = Bitmap.createScaledBitmap(this@compressToLegalSize, size, size, false)
-            if (resultBitmap.isLegalSize()) {
-                break
+        if (width > 200) width = 200
+        if (height > 200) height = 200
+        if (byteCount <= WXMediaMessage.THUMB_LENGTH_LIMIT) {
+            toByteArray()
+        } else {
+            val baos = ByteArrayOutputStream()
+            for (quality in 90 downTo 0 step 10) {
+                baos.reset()
+                compress(Bitmap.CompressFormat.WEBP, quality, baos)
+                if (baos.size() <= WXMediaMessage.THUMB_LENGTH_LIMIT) {
+                    break
+                }
             }
+            baos.toByteArray()
         }
-        resultBitmap
     }
 }
 
-private fun Bitmap.isLegalSize(): Boolean {
-    return byteCount <= WXMediaMessage.THUMB_LENGTH_LIMIT
+private fun Bitmap.toByteArray(): ByteArray {
+    return ByteBuffer.allocate(byteCount).also {
+        copyPixelsToBuffer(it)
+    }.array()
 }
