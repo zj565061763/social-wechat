@@ -52,6 +52,9 @@ object FSocialWechatLoginApi {
                             _loginCallback?.onSuccess(WechatLoginResult(authResp.code, "", ""))
                             resetState()
                         }
+                    } else {
+                        _loginCallback?.onError(-1, "unknown state ${authResp.state}")
+                        resetState()
                     }
                 }
                 BaseResp.ErrCode.ERR_USER_CANCEL,
