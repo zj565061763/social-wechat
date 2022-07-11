@@ -5,6 +5,7 @@ import android.graphics.drawable.BitmapDrawable
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.sd.lib.social.wechat.FSocialWechat
+import com.sd.lib.social.wechat.logMsg
 import com.sd.lib.social.wechat.model.WechatShareResult
 import com.tencent.mm.opensdk.constants.ConstantsAPI
 import com.tencent.mm.opensdk.modelbase.BaseResp
@@ -73,6 +74,7 @@ object FSocialWechatShareApi : FSocialWechatApi() {
         callback: ShareCallback,
     ) {
         if (_isShare.compareAndSet(false, true)) {
+            logMsg { "FSocialWechatShareApi shareUrl scene:$scene hasImage:${imageUrl.isNotEmpty()}" }
             startTrackActivity()
             _shareCallback = callback
             val mediaObject = WXWebpageObject().apply {
@@ -94,9 +96,12 @@ object FSocialWechatShareApi : FSocialWechatApi() {
             } else {
                 _coroutineScope.launch {
                     message.thumbData = try {
-                        downloadImage(imageUrl)
+                        downloadImage(imageUrl).also {
+                            logMsg { "FSocialWechatShareApi downloadImage success" }
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        logMsg { "FSocialWechatShareApi downloadImage error $e" }
                         null
                     }
                     FSocialWechat.wxapi.sendReq(req)
@@ -110,6 +115,8 @@ object FSocialWechatShareApi : FSocialWechatApi() {
             // 不是分享消息结果，不处理
             return
         }
+
+        logMsg { "FSocialWechatShareApi handleResponse code${resp.errCode}" }
         when (resp.errCode) {
             BaseResp.ErrCode.ERR_OK -> {
                 notifySuccess(WechatShareResult())
@@ -120,25 +127,31 @@ object FSocialWechatShareApi : FSocialWechatApi() {
     }
 
     private fun notifySuccess(result: WechatShareResult) {
+        logMsg { "FSocialWechatShareApi notifySuccess" }
         _shareCallback?.onSuccess(result)
         resetState()
     }
 
     private fun notifyError(code: Int, message: String) {
+        logMsg { "FSocialWechatShareApi notifyError code:$code message:$message" }
         _shareCallback?.onError(code, message)
         resetState()
     }
 
     private fun notifyCancel() {
+        logMsg { "FSocialWechatShareApi notifyCancel" }
         _shareCallback?.onCancel()
         resetState()
     }
 
     private fun resetState() {
-        stopTrackActivity()
-        _shareCallback = null
-        _shouldCheckWhenResume = false
-        _isShare.set(false)
+        if (_isShare.get()) {
+            logMsg { "FSocialWechatShareApi resetState" }
+            stopTrackActivity()
+            _shareCallback = null
+            _shouldCheckWhenResume = false
+            _isShare.set(false)
+        }
     }
 
     override fun onTrackActivityStopped() {
@@ -146,6 +159,7 @@ object FSocialWechatShareApi : FSocialWechatApi() {
         if (_isShare.get()) {
             // 调用分享之后，Activity进入stop，标记为true
             _shouldCheckWhenResume = true
+            logMsg { "FSocialWechatShareApi mark should check when resume" }
         }
     }
 
@@ -154,6 +168,7 @@ object FSocialWechatShareApi : FSocialWechatApi() {
         if (_isShare.get() && _shouldCheckWhenResume) {
             // 调用分享之后，回到App，但是微信SDK没有回调，此时也通知成功
             _shouldCheckWhenResume = false
+            logMsg { "FSocialWechatShareApi check resume" }
             notifySuccess(WechatShareResult())
         }
     }
