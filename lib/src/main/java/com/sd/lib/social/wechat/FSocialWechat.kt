@@ -1,13 +1,18 @@
 package com.sd.lib.social.wechat
 
+import android.app.Activity
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Bundle
+import com.sd.lib.social.wechat.core.FSocialWechatLoginApi
+import com.sd.lib.social.wechat.core.FSocialWechatShareApi
 import com.tencent.mm.opensdk.constants.ConstantsAPI
 import com.tencent.mm.opensdk.openapi.IWXAPI
 import com.tencent.mm.opensdk.openapi.WXAPIFactory
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 
 object FSocialWechat {
@@ -15,6 +20,16 @@ object FSocialWechat {
     private var _appId: String = ""
     private var _appSecret: String = ""
     private var _wxapi: IWXAPI? = null
+
+    private val _activityCallback by lazy {
+        object : ActivityCallback() {
+            override fun onActivityDestroyed(activity: Activity) {
+                super.onActivityDestroyed(activity)
+                FSocialWechatLoginApi.onActivityDestroyed(activity)
+                FSocialWechatShareApi.onActivityDestroyed(activity)
+            }
+        }
+    }
 
     internal val context: Context
         get() = checkNotNull(_context) { "You should init before this" }
@@ -24,6 +39,9 @@ object FSocialWechat {
 
     internal val appSecret: String
         get() = _appSecret.also { check(it.isNotEmpty()) { "You should init before this" } }
+
+    internal val topActivity: Activity?
+        get() = _activityCallback.topActivity
 
     val wxapi: IWXAPI
         get() {
@@ -42,9 +60,11 @@ object FSocialWechat {
         require(appId.isNotEmpty()) { "appId is empty" }
         require(appSecret.isNotEmpty()) { "appSecret is empty" }
         synchronized(this@FSocialWechat) {
-            _context = context.applicationContext as Application
+            val application = context.applicationContext as Application
+            _context = application
             _appSecret = appSecret
             _broadcastReceiver.register()
+            _activityCallback.register(application)
             if (_appId != appId) {
                 _appId = appId
                 _wxapi?.unregisterApp()
@@ -75,5 +95,40 @@ object FSocialWechat {
                 context.registerReceiver(this, IntentFilter(ConstantsAPI.ACTION_REFRESH_WXAPP))
             }
         }
+    }
+}
+
+private open class ActivityCallback : Application.ActivityLifecycleCallbacks {
+    private var _topActivityRef: WeakReference<Activity>? = null
+
+    val topActivity: Activity?
+        get() = _topActivityRef?.get()
+
+    fun register(application: Application) {
+        application.unregisterActivityLifecycleCallbacks(this)
+        application.registerActivityLifecycleCallbacks(this)
+    }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        _topActivityRef = WeakReference(activity)
+    }
+
+    override fun onActivityStarted(activity: Activity) {
+    }
+
+    override fun onActivityResumed(activity: Activity) {
+        _topActivityRef = WeakReference(activity)
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+    }
+
+    override fun onActivityStopped(activity: Activity) {
+    }
+
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+    }
+
+    override fun onActivityDestroyed(activity: Activity) {
     }
 }

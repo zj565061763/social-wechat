@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * 登录
  */
-object FSocialWechatLoginApi {
+object FSocialWechatLoginApi : FSocialWechatApi() {
     private val _isLogin = AtomicBoolean(false)
     private var _loginCallback: LoginCallback? = null
     private var _reqId: String = ""
@@ -38,6 +38,7 @@ object FSocialWechatLoginApi {
         getToken: Boolean = true,
     ) {
         if (_isLogin.compareAndSet(false, true)) {
+            trackActivity()
             _loginCallback = callback
             _getToken = getToken
             with(FSocialWechat.wxapi) {
@@ -159,6 +160,10 @@ object FSocialWechatLoginApi {
         _reqId = ""
         _getToken = false
         _isLogin.set(false)
+    }
+
+    override fun onTrackActivityDestroyed() {
+        resetState()
     }
 
     interface LoginCallback {

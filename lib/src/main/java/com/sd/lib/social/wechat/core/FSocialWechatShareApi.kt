@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * 分享
  */
-object FSocialWechatShareApi {
+object FSocialWechatShareApi : FSocialWechatApi() {
     private val _isShare = AtomicBoolean(false)
     private var _shareCallback: ShareCallback? = null
 
@@ -72,6 +72,7 @@ object FSocialWechatShareApi {
         callback: ShareCallback,
     ) {
         if (_isShare.compareAndSet(false, true)) {
+            trackActivity()
             _shareCallback = callback
             val mediaObject = WXWebpageObject().apply {
                 this.webpageUrl = targetUrl
@@ -135,6 +136,10 @@ object FSocialWechatShareApi {
     private fun resetState() {
         _shareCallback = null
         _isShare.set(false)
+    }
+
+    override fun onTrackActivityDestroyed() {
+        resetState()
     }
 
     interface ShareCallback {
