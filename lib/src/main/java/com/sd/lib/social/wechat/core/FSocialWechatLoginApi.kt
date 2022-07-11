@@ -2,6 +2,7 @@ package com.sd.lib.social.wechat.core
 
 import com.github.kevinsawicki.http.HttpRequest
 import com.sd.lib.social.wechat.FSocialWechat
+import com.sd.lib.social.wechat.logMsg
 import com.sd.lib.social.wechat.model.WechatLoginResult
 import com.tencent.mm.opensdk.constants.ConstantsAPI
 import com.tencent.mm.opensdk.modelbase.BaseResp
@@ -38,6 +39,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
         getToken: Boolean = true,
     ) {
         if (_isLogin.compareAndSet(false, true)) {
+            logMsg { "${javaClass.simpleName} login getToken:$getToken" }
             startTrackActivity()
             _loginCallback = callback
             _getToken = getToken
@@ -59,6 +61,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
             // 不是登录授权结果，不处理
             return
         }
+        logMsg { "${javaClass.simpleName} handleResponse code:${resp.errCode}" }
         when (resp.errCode) {
             BaseResp.ErrCode.ERR_OK -> {
                 val authResp = resp as SendAuth.Resp
@@ -141,26 +144,32 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
     }
 
     private fun notifySuccess(result: WechatLoginResult) {
+        logMsg { "${javaClass.simpleName} notifySuccess" }
         _loginCallback?.onSuccess(result)
         resetState()
     }
 
     private fun notifyError(code: Int, message: String) {
+        logMsg { "${javaClass.simpleName} notifyError" }
         _loginCallback?.onError(code, message)
         resetState()
     }
 
     private fun notifyCancel() {
+        logMsg { "${javaClass.simpleName} notifyCancel" }
         _loginCallback?.onCancel()
         resetState()
     }
 
     private fun resetState() {
-        stopTrackActivity()
-        _loginCallback = null
-        _reqId = ""
-        _getToken = false
-        _isLogin.set(false)
+        if (_isLogin.get()) {
+            logMsg { "${javaClass.simpleName} resetState" }
+            stopTrackActivity()
+            _loginCallback = null
+            _reqId = ""
+            _getToken = false
+            _isLogin.set(false)
+        }
     }
 
     override fun onTrackActivityDestroyed() {
