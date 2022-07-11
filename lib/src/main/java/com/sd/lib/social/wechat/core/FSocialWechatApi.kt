@@ -24,42 +24,42 @@ abstract class FSocialWechatApi {
 
     internal fun onActivityStarted(activity: Activity) {
         if (_trackActivityRef?.get() === activity) {
+            logMsg { "${javaClass.simpleName} onTrackActivityStarted" }
             onTrackActivityStarted()
         }
     }
 
     internal fun onActivityResumed(activity: Activity) {
         if (_trackActivityRef?.get() === activity) {
+            logMsg { "${javaClass.simpleName} onTrackActivityResumed" }
             onTrackActivityResumed()
         }
     }
 
     internal fun onActivityStopped(activity: Activity) {
         if (_trackActivityRef?.get() === activity) {
+            logMsg { "${javaClass.simpleName} onTrackActivityStopped" }
             onTrackActivityStopped()
         }
     }
 
     internal fun onActivityDestroyed(activity: Activity) {
         if (_trackActivityRef?.get() === activity && activity.isFinishing) {
+            logMsg { "${javaClass.simpleName} onTrackActivityDestroyed" }
             stopTrackActivity()
             onTrackActivityDestroyed()
         }
     }
 
     protected open fun onTrackActivityStarted() {
-        logMsg { "${javaClass.simpleName} onTrackActivityStarted" }
     }
 
     protected open fun onTrackActivityResumed() {
-        logMsg { "${javaClass.simpleName} onTrackActivityResumed" }
     }
 
     protected open fun onTrackActivityStopped() {
-        logMsg { "${javaClass.simpleName} onTrackActivityStopped" }
     }
 
     protected open fun onTrackActivityDestroyed() {
-        logMsg { "${javaClass.simpleName} onTrackActivityDestroyed" }
     }
 }
