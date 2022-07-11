@@ -156,7 +156,8 @@ private suspend fun downloadImage(url: String): ByteArray? {
         .data(url)
         .size(150, 150)
         .build()
-    val drawable = FSocialWechat.context.imageLoader.execute(request).drawable ?: return null
+    val imageLoader = FSocialWechat.context.imageLoader
+    val drawable = imageLoader.execute(request).drawable ?: return null
     val bitmap = if (drawable is BitmapDrawable) {
         drawable.bitmap
     } else {
