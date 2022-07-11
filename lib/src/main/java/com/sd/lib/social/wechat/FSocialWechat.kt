@@ -91,7 +91,7 @@ object FSocialWechat {
 
         fun register() {
             if (_hasRegister.compareAndSet(false, true)) {
-                logMsg { "BroadcastReceiver register" }
+                logMsg { "register BroadcastReceiver" }
                 context.registerReceiver(this, IntentFilter(ConstantsAPI.ACTION_REFRESH_WXAPP))
             }
         }
@@ -127,14 +127,17 @@ object FSocialWechat {
 }
 
 private open class ActivityCallback : Application.ActivityLifecycleCallbacks {
+    private val _hasRegister = AtomicBoolean(false)
     private var _topActivityRef: WeakReference<Activity>? = null
 
     val topActivity: Activity?
         get() = _topActivityRef?.get()
 
     fun register(application: Application) {
-        application.unregisterActivityLifecycleCallbacks(this)
-        application.registerActivityLifecycleCallbacks(this)
+        if (_hasRegister.compareAndSet(false, true)) {
+            logMsg { "register ActivityCallback" }
+            application.registerActivityLifecycleCallbacks(this)
+        }
     }
 
     private fun saveTopActivity(activity: Activity) {
