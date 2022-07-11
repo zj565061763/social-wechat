@@ -139,6 +139,7 @@ object FSocialWechatShareApi : FSocialWechatApi() {
     }
 
     override fun onTrackActivityDestroyed() {
+        super.onTrackActivityDestroyed()
         resetState()
     }
 

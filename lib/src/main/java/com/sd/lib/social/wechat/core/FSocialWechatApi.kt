@@ -20,5 +20,7 @@ abstract class FSocialWechatApi {
         }
     }
 
-    abstract fun onTrackActivityDestroyed()
+    protected open fun onTrackActivityDestroyed() {
+
+    }
 }
