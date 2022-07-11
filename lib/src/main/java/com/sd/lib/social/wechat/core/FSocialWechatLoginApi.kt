@@ -85,9 +85,11 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
     }
 
     private fun getToken(code: String) {
+        logMsg { "${javaClass.simpleName} getToken" }
         val url = with(FSocialWechat) {
             "https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${appSecret}&code=${code}&grant_type=authorization_code"
         }
+
         _coroutineScope.launch {
             val request = HttpRequest.get(url).apply {
                 trustAllCerts()
@@ -96,9 +98,10 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
             withContext(Dispatchers.IO) {
                 try {
                     val body = request.body()
-                    JSONObject(body)
+                    JSONObject(body).also { logMsg { "${javaClass.simpleName} getToken success" } }
                 } catch (e: HttpRequest.HttpRequestException) {
                     e.printStackTrace()
+                    logMsg { "${javaClass.simpleName} getToken error $e" }
                     null
                 }
             }.let { response ->
@@ -123,9 +126,11 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
 
     private fun refreshToken(refreshToken: String) {
         if (refreshToken.isEmpty()) return
+        logMsg { "${javaClass.simpleName} refreshToken" }
         val url = with(FSocialWechat) {
             "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=${appId}&grant_type=refresh_token&refresh_token=${refreshToken}"
         }
+
         _coroutineScope.launch {
             val request = HttpRequest.get(url).apply {
                 trustAllCerts()
@@ -134,10 +139,11 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
             withContext(Dispatchers.IO) {
                 try {
                     request.body().also {
-                        it.length
+                        logMsg { "${javaClass.simpleName} refreshToken success" }
                     }
                 } catch (e: HttpRequest.HttpRequestException) {
                     e.printStackTrace()
+                    logMsg { "${javaClass.simpleName} refreshToken error $e" }
                 }
             }
         }
