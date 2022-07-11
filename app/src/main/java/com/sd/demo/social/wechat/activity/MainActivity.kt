@@ -19,45 +19,53 @@ class MainActivity : AppCompatActivity() {
 
         // 登录
         _binding.btnLogin.setOnClickListener {
-            Log.i(TAG, "click login")
-            FSocialWechatLoginApi.login(object : FSocialWechatLoginApi.LoginCallback {
-                override fun onSuccess(result: WechatLoginResult) {
-                    Log.i(TAG, "login onSuccess $result")
-                }
-
-                override fun onError(code: Int, message: String) {
-                    Log.i(TAG, "login onError $code $message")
-                }
-
-                override fun onCancel() {
-                    Log.i(TAG, "login onCancel")
-                }
-            })
+            login()
         }
 
         // 分享
         _binding.btnShare.setOnClickListener {
-            Log.i(TAG, "click share")
-            FSocialWechatShareApi.shareUrl(
-                targetUrl = "http://www.baidu.com",
-                title = "我是标题",
-                description = "我是描述",
-                imageUrl = "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
-                callback = object : FSocialWechatShareApi.ShareCallback {
-                    override fun onSuccess(result: WechatShareResult) {
-                        Log.i(TAG, "share onSuccess $result")
-                    }
-
-                    override fun onError(code: Int, message: String) {
-                        Log.i(TAG, "share onError $code $message")
-                    }
-
-                    override fun onCancel() {
-                        Log.i(TAG, "share onCancel")
-                    }
-                }
-            )
+            share()
         }
+    }
+
+    private fun login() {
+        Log.i(TAG, "click login")
+        FSocialWechatLoginApi.login(object : FSocialWechatLoginApi.LoginCallback {
+            override fun onSuccess(result: WechatLoginResult) {
+                Log.i(TAG, "login onSuccess $result")
+            }
+
+            override fun onError(code: Int, message: String) {
+                Log.i(TAG, "login onError $code $message")
+            }
+
+            override fun onCancel() {
+                Log.i(TAG, "login onCancel")
+            }
+        })
+    }
+
+    private fun share() {
+        Log.i(TAG, "click share")
+        FSocialWechatShareApi.shareUrl(
+            targetUrl = "http://www.baidu.com",
+            title = "我是标题",
+            description = "我是描述",
+            imageUrl = "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
+            callback = object : FSocialWechatShareApi.ShareCallback {
+                override fun onSuccess(result: WechatShareResult) {
+                    Log.i(TAG, "share onSuccess $result")
+                }
+
+                override fun onError(code: Int, message: String) {
+                    Log.i(TAG, "share onError $code $message")
+                }
+
+                override fun onCancel() {
+                    Log.i(TAG, "share onCancel")
+                }
+            }
+        )
     }
 
     companion object {
