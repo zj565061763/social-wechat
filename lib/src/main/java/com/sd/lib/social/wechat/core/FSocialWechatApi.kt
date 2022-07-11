@@ -16,8 +16,10 @@ abstract class FSocialWechatApi {
     }
 
     protected fun stopTrackActivity() {
-        _trackActivityRef = null
-        logMsg { "${javaClass.simpleName} stopTrackActivity" }
+        if (_trackActivityRef != null) {
+            _trackActivityRef = null
+            logMsg { "${javaClass.simpleName} stopTrackActivity" }
+        }
     }
 
     internal fun onActivityStarted(activity: Activity) {
