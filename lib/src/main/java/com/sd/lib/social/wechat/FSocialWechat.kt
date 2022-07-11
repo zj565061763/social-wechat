@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.util.Log
 import com.sd.lib.social.wechat.core.FSocialWechatLoginApi
 import com.sd.lib.social.wechat.core.FSocialWechatShareApi
 import com.tencent.mm.opensdk.constants.ConstantsAPI
@@ -20,16 +21,6 @@ object FSocialWechat {
     private var _appId: String = ""
     private var _appSecret: String = ""
     private var _wxapi: IWXAPI? = null
-
-    private val _activityCallback by lazy {
-        object : ActivityCallback() {
-            override fun onActivityDestroyed(activity: Activity) {
-                super.onActivityDestroyed(activity)
-                FSocialWechatLoginApi.onActivityDestroyed(activity)
-                FSocialWechatShareApi.onActivityDestroyed(activity)
-            }
-        }
-    }
 
     internal val context: Context
         get() = checkNotNull(_context) { "You should init before this" }
@@ -96,6 +87,34 @@ object FSocialWechat {
             }
         }
     }
+
+    private val _activityCallback by lazy {
+        object : ActivityCallback() {
+            override fun onActivityStarted(activity: Activity) {
+                super.onActivityStarted(activity)
+                FSocialWechatLoginApi.onActivityStarted(activity)
+                FSocialWechatShareApi.onActivityStarted(activity)
+            }
+
+            override fun onActivityResumed(activity: Activity) {
+                super.onActivityResumed(activity)
+                FSocialWechatLoginApi.onActivityResumed(activity)
+                FSocialWechatShareApi.onActivityResumed(activity)
+            }
+
+            override fun onActivityStopped(activity: Activity) {
+                super.onActivityStopped(activity)
+                FSocialWechatLoginApi.onActivityStopped(activity)
+                FSocialWechatShareApi.onActivityStopped(activity)
+            }
+
+            override fun onActivityDestroyed(activity: Activity) {
+                super.onActivityDestroyed(activity)
+                FSocialWechatLoginApi.onActivityDestroyed(activity)
+                FSocialWechatShareApi.onActivityDestroyed(activity)
+            }
+        }
+    }
 }
 
 private open class ActivityCallback : Application.ActivityLifecycleCallbacks {
@@ -111,24 +130,31 @@ private open class ActivityCallback : Application.ActivityLifecycleCallbacks {
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         _topActivityRef = WeakReference(activity)
+        Log.i("ActivityCallback", "onActivityCreated $activity")
     }
 
     override fun onActivityStarted(activity: Activity) {
+        Log.i("ActivityCallback", "onActivityStarted $activity")
     }
 
     override fun onActivityResumed(activity: Activity) {
         _topActivityRef = WeakReference(activity)
+        Log.i("ActivityCallback", "onActivityResumed $activity")
+
     }
 
     override fun onActivityPaused(activity: Activity) {
+        Log.i("ActivityCallback", "onActivityPaused $activity")
     }
 
     override fun onActivityStopped(activity: Activity) {
+        Log.i("ActivityCallback", "onActivityStopped $activity")
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
     }
 
     override fun onActivityDestroyed(activity: Activity) {
+        Log.i("ActivityCallback", "onActivityDestroyed $activity")
     }
 }

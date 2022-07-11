@@ -17,6 +17,24 @@ abstract class FSocialWechatApi {
         _trackActivityRef = null
     }
 
+    internal fun onActivityStarted(activity: Activity) {
+        if (_trackActivityRef?.get() === activity) {
+            onTrackActivityStarted()
+        }
+    }
+
+    internal fun onActivityResumed(activity: Activity) {
+        if (_trackActivityRef?.get() === activity) {
+            onTrackActivityResumed()
+        }
+    }
+
+    internal fun onActivityStopped(activity: Activity) {
+        if (_trackActivityRef?.get() === activity) {
+            onTrackActivityStopped()
+        }
+    }
+
     internal fun onActivityDestroyed(activity: Activity) {
         if (_trackActivityRef?.get() === activity && activity.isFinishing) {
             stopTrackActivity()
@@ -24,7 +42,15 @@ abstract class FSocialWechatApi {
         }
     }
 
-    protected open fun onTrackActivityDestroyed() {
+    protected open fun onTrackActivityStarted() {
+    }
 
+    protected open fun onTrackActivityResumed() {
+    }
+
+    protected open fun onTrackActivityStopped() {
+    }
+
+    protected open fun onTrackActivityDestroyed() {
     }
 }

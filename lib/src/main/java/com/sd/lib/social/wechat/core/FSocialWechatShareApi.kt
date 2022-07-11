@@ -27,6 +27,7 @@ object FSocialWechatShareApi : FSocialWechatApi() {
     private var _shareCallback: ShareCallback? = null
 
     private val _coroutineScope = MainScope()
+    private var _shouldCheckWhenResume = false
 
     /**
      * 分享url
@@ -136,7 +137,25 @@ object FSocialWechatShareApi : FSocialWechatApi() {
     private fun resetState() {
         stopTrackActivity()
         _shareCallback = null
+        _shouldCheckWhenResume = false
         _isShare.set(false)
+    }
+
+    override fun onTrackActivityStopped() {
+        super.onTrackActivityStopped()
+        if (_isShare.get()) {
+            // 调用分享之后，Activity进入stop，标记为true
+            _shouldCheckWhenResume = true
+        }
+    }
+
+    override fun onTrackActivityResumed() {
+        super.onTrackActivityResumed()
+        if (_isShare.get() && _shouldCheckWhenResume) {
+            // 调用分享之后，回到App，但是微信SDK没有回调，此时也通知成功
+            _shouldCheckWhenResume = false
+            notifySuccess(WechatShareResult())
+        }
     }
 
     override fun onTrackActivityDestroyed() {
