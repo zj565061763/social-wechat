@@ -2,6 +2,7 @@ package com.sd.lib.social.wechat.core
 
 import android.app.Activity
 import com.sd.lib.social.wechat.FSocialWechat
+import com.sd.lib.social.wechat.logMsg
 import java.lang.ref.WeakReference
 
 abstract class FSocialWechatApi {
@@ -11,10 +12,12 @@ abstract class FSocialWechatApi {
         val activity = FSocialWechat.topActivity ?: return
         if (activity.isFinishing) return
         _trackActivityRef = WeakReference(activity)
+        logMsg { "${javaClass.simpleName} startTrackActivity $activity" }
     }
 
     protected fun stopTrackActivity() {
         _trackActivityRef = null
+        logMsg { "${javaClass.simpleName} stopTrackActivity" }
     }
 
     internal fun onActivityStarted(activity: Activity) {
@@ -43,14 +46,18 @@ abstract class FSocialWechatApi {
     }
 
     protected open fun onTrackActivityStarted() {
+        logMsg { "${javaClass.simpleName} onTrackActivityStarted" }
     }
 
     protected open fun onTrackActivityResumed() {
+        logMsg { "${javaClass.simpleName} onTrackActivityResumed" }
     }
 
     protected open fun onTrackActivityStopped() {
+        logMsg { "${javaClass.simpleName} onTrackActivityStopped" }
     }
 
     protected open fun onTrackActivityDestroyed() {
+        logMsg { "${javaClass.simpleName} onTrackActivityDestroyed" }
     }
 }
