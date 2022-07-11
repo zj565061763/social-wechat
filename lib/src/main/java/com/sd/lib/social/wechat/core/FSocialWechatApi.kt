@@ -19,7 +19,7 @@ abstract class FSocialWechatApi {
 
     internal fun onActivityDestroyed(activity: Activity) {
         if (_trackActivityRef?.get() === activity && activity.isFinishing) {
-            _trackActivityRef = null
+            stopTrackActivity()
             onTrackActivityDestroyed()
         }
     }
