@@ -156,7 +156,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
     }
 
     private fun notifyError(code: Int, message: String) {
-        logMsg { "FSocialWechatLoginApi notifyError" }
+        logMsg { "FSocialWechatLoginApi notifyError code:$code message:$message" }
         _loginCallback?.onError(code, message)
         resetState()
     }
