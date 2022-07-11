@@ -38,7 +38,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
         getToken: Boolean = true,
     ) {
         if (_isLogin.compareAndSet(false, true)) {
-            trackActivity()
+            startTrackActivity()
             _loginCallback = callback
             _getToken = getToken
             with(FSocialWechat.wxapi) {
@@ -156,6 +156,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
     }
 
     private fun resetState() {
+        stopTrackActivity()
         _loginCallback = null
         _reqId = ""
         _getToken = false

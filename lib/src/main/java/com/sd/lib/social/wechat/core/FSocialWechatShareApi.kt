@@ -72,7 +72,7 @@ object FSocialWechatShareApi : FSocialWechatApi() {
         callback: ShareCallback,
     ) {
         if (_isShare.compareAndSet(false, true)) {
-            trackActivity()
+            startTrackActivity()
             _shareCallback = callback
             val mediaObject = WXWebpageObject().apply {
                 this.webpageUrl = targetUrl
@@ -134,6 +134,7 @@ object FSocialWechatShareApi : FSocialWechatApi() {
     }
 
     private fun resetState() {
+        stopTrackActivity()
         _shareCallback = null
         _isShare.set(false)
     }
