@@ -141,7 +141,6 @@ private open class ActivityCallback : Application.ActivityLifecycleCallbacks {
         val old = _topActivityRef?.get()
         if (old != activity) {
             _topActivityRef = WeakReference(activity)
-            logMsg { "saveTopActivity $activity" }
         }
     }
 
