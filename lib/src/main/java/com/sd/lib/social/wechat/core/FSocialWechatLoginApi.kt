@@ -39,7 +39,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
         getToken: Boolean = true,
     ) {
         if (_isLogin.compareAndSet(false, true)) {
-            logMsg { "${javaClass.simpleName} login getToken:$getToken" }
+            logMsg { "FSocialWechatLoginApi login getToken:$getToken" }
             startTrackActivity()
             _loginCallback = callback
             _getToken = getToken
@@ -61,7 +61,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
             // 不是登录授权结果，不处理
             return
         }
-        logMsg { "${javaClass.simpleName} handleResponse code:${resp.errCode}" }
+        logMsg { "FSocialWechatLoginApi handleResponse code:${resp.errCode}" }
         when (resp.errCode) {
             BaseResp.ErrCode.ERR_OK -> {
                 val authResp = resp as SendAuth.Resp
@@ -85,7 +85,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
     }
 
     private fun getToken(code: String) {
-        logMsg { "${javaClass.simpleName} getToken" }
+        logMsg { "FSocialWechatLoginApi getToken" }
         val url = with(FSocialWechat) {
             "https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${appSecret}&code=${code}&grant_type=authorization_code"
         }
@@ -98,10 +98,10 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
             withContext(Dispatchers.IO) {
                 try {
                     val body = request.body()
-                    JSONObject(body).also { logMsg { "${javaClass.simpleName} getToken success" } }
+                    JSONObject(body).also { logMsg { "FSocialWechatLoginApi getToken success" } }
                 } catch (e: HttpRequest.HttpRequestException) {
                     e.printStackTrace()
-                    logMsg { "${javaClass.simpleName} getToken error $e" }
+                    logMsg { "FSocialWechatLoginApi getToken error $e" }
                     null
                 }
             }.let { response ->
@@ -126,7 +126,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
 
     private fun refreshToken(refreshToken: String) {
         if (refreshToken.isEmpty()) return
-        logMsg { "${javaClass.simpleName} refreshToken" }
+        logMsg { "FSocialWechatLoginApi refreshToken" }
         val url = with(FSocialWechat) {
             "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=${appId}&grant_type=refresh_token&refresh_token=${refreshToken}"
         }
@@ -139,37 +139,37 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
             withContext(Dispatchers.IO) {
                 try {
                     request.body().also {
-                        logMsg { "${javaClass.simpleName} refreshToken success" }
+                        logMsg { "FSocialWechatLoginApi refreshToken success" }
                     }
                 } catch (e: HttpRequest.HttpRequestException) {
                     e.printStackTrace()
-                    logMsg { "${javaClass.simpleName} refreshToken error $e" }
+                    logMsg { "FSocialWechatLoginApi refreshToken error $e" }
                 }
             }
         }
     }
 
     private fun notifySuccess(result: WechatLoginResult) {
-        logMsg { "${javaClass.simpleName} notifySuccess" }
+        logMsg { "FSocialWechatLoginApi notifySuccess" }
         _loginCallback?.onSuccess(result)
         resetState()
     }
 
     private fun notifyError(code: Int, message: String) {
-        logMsg { "${javaClass.simpleName} notifyError" }
+        logMsg { "FSocialWechatLoginApi notifyError" }
         _loginCallback?.onError(code, message)
         resetState()
     }
 
     private fun notifyCancel() {
-        logMsg { "${javaClass.simpleName} notifyCancel" }
+        logMsg { "FSocialWechatLoginApi notifyCancel" }
         _loginCallback?.onCancel()
         resetState()
     }
 
     private fun resetState() {
         if (_isLogin.get()) {
-            logMsg { "${javaClass.simpleName} resetState" }
+            logMsg { "FSocialWechatLoginApi resetState" }
             stopTrackActivity()
             _loginCallback = null
             _reqId = ""
