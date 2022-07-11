@@ -34,12 +34,17 @@ object FSocialWechat {
     internal val topActivity: Activity?
         get() = _activityCallback.topActivity
 
+    @JvmStatic
+    var isDebug = false
+
+    @JvmStatic
     val wxapi: IWXAPI
         get() {
             synchronized(this@FSocialWechat) {
                 val api = _wxapi
                 if (api != null) return api
                 return WXAPIFactory.createWXAPI(context, appId, true).also {
+                    logMsg { "createWXAPI" }
                     _wxapi = it
                     it.registerApp(appId)
                 }
@@ -51,6 +56,7 @@ object FSocialWechat {
         require(appId.isNotEmpty()) { "appId is empty" }
         require(appSecret.isNotEmpty()) { "appSecret is empty" }
         synchronized(this@FSocialWechat) {
+            logMsg { "init" }
             val application = context.applicationContext as Application
             _context = application
             _appSecret = appSecret
@@ -76,13 +82,16 @@ object FSocialWechat {
 
         override fun onReceive(context: Context?, intent: Intent?) {
             val id = _appId
-            if (id.isNotEmpty()) {
-                _wxapi?.registerApp(id)
+            val api = _wxapi
+            if (id.isNotEmpty() && api != null) {
+                logMsg { "BroadcastReceiver onReceive registerApp" }
+                api.registerApp(id)
             }
         }
 
         fun register() {
             if (_hasRegister.compareAndSet(false, true)) {
+                logMsg { "BroadcastReceiver register" }
                 context.registerReceiver(this, IntentFilter(ConstantsAPI.ACTION_REFRESH_WXAPP))
             }
         }
@@ -128,33 +137,48 @@ private open class ActivityCallback : Application.ActivityLifecycleCallbacks {
         application.registerActivityLifecycleCallbacks(this)
     }
 
+    private fun saveTopActivity(activity: Activity) {
+        val old = _topActivityRef?.get()
+        if (old != activity) {
+            _topActivityRef = WeakReference(activity)
+            logMsg { "saveTopActivity $activity" }
+        }
+    }
+
+    override fun onActivityPreCreated(activity: Activity, savedInstanceState: Bundle?) {
+        super.onActivityPreCreated(activity, savedInstanceState)
+        saveTopActivity(activity)
+    }
+
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        _topActivityRef = WeakReference(activity)
-        Log.i("ActivityCallback", "onActivityCreated $activity")
     }
 
     override fun onActivityStarted(activity: Activity) {
-        Log.i("ActivityCallback", "onActivityStarted $activity")
+    }
+
+    override fun onActivityPreResumed(activity: Activity) {
+        super.onActivityPreResumed(activity)
+        saveTopActivity(activity)
     }
 
     override fun onActivityResumed(activity: Activity) {
-        _topActivityRef = WeakReference(activity)
-        Log.i("ActivityCallback", "onActivityResumed $activity")
-
     }
 
     override fun onActivityPaused(activity: Activity) {
-        Log.i("ActivityCallback", "onActivityPaused $activity")
     }
 
     override fun onActivityStopped(activity: Activity) {
-        Log.i("ActivityCallback", "onActivityStopped $activity")
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
     }
 
     override fun onActivityDestroyed(activity: Activity) {
-        Log.i("ActivityCallback", "onActivityDestroyed $activity")
+    }
+}
+
+internal inline fun logMsg(block: () -> String) {
+    if (FSocialWechat.isDebug) {
+        Log.i("FSocialWechat", block())
     }
 }
