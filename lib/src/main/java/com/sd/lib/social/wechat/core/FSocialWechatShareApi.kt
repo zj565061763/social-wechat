@@ -116,7 +116,7 @@ object FSocialWechatShareApi : FSocialWechatApi() {
             return
         }
 
-        logMsg { "FSocialWechatShareApi handleResponse code${resp.errCode}" }
+        logMsg { "FSocialWechatShareApi handleResponse code:${resp.errCode}" }
         when (resp.errCode) {
             BaseResp.ErrCode.ERR_OK -> {
                 notifySuccess(WechatShareResult())
