@@ -135,24 +135,25 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
             if (response == null) {
                 notifyError(-1, "error get token")
             } else {
+                val refreshToken = response.optString("refresh_token")
+                refreshToken(_appId, refreshToken)
+
                 val loginResult = WechatLoginResult(
                     code = "",
                     openId = response.optString("openid"),
                     accessToken = response.optString("access_token")
                 )
                 notifySuccess(loginResult)
-
-                val refreshToken = response.optString("refresh_token")
-                refreshToken(refreshToken)
             }
         }
     }
 
-    private fun refreshToken(refreshToken: String) {
+    private fun refreshToken(appId: String, refreshToken: String) {
+        if (appId.isEmpty()) return
         if (refreshToken.isEmpty()) return
 
         logMsg { "FSocialWechatLoginApi refreshToken" }
-        val url = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=${_appId}&grant_type=refresh_token&refresh_token=${refreshToken}"
+        val url = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=${appId}&grant_type=refresh_token&refresh_token=${refreshToken}"
 
         _coroutineScope.launch {
             val request = HttpRequest.get(url).apply {
