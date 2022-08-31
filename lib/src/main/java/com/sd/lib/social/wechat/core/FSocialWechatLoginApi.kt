@@ -74,7 +74,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
         if (!isLogin) return
         if (resp.type != ConstantsAPI.COMMAND_SENDAUTH) return
 
-        logMsg { "FSocialWechatLoginApi handleResponse code:${resp.errCode} isLogin:$isLogin" }
+        logMsg { "FSocialWechatLoginApi handleResponse code:${resp.errCode}" }
         when (resp.errCode) {
             BaseResp.ErrCode.ERR_OK -> {
                 val authResp = resp as SendAuth.Resp
