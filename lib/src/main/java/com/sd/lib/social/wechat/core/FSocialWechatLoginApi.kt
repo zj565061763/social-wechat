@@ -7,13 +7,9 @@ import com.sd.lib.social.wechat.model.WechatLoginResult
 import com.tencent.mm.opensdk.constants.ConstantsAPI
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.modelmsg.SendAuth
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import org.json.JSONException
 import org.json.JSONObject
-import java.net.URLEncoder
-import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -21,11 +17,19 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 object FSocialWechatLoginApi : FSocialWechatApi() {
     private val _isLogin = AtomicBoolean(false)
+
     private var _loginCallback: LoginCallback? = null
-    private var _reqId: String = ""
     private var _getToken = false
+    private var _reqId = ""
+
+    private var _appId = ""
+    private var _appSecret = ""
 
     private val _coroutineScope = MainScope()
+
+    /** 是否正在登录 */
+    val isLogin: Boolean
+        get() = _isLogin.get()
 
     /**
      * 登录
@@ -40,32 +44,41 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
     ) {
         if (_isLogin.compareAndSet(false, true)) {
             logMsg { "FSocialWechatLoginApi login getToken:$getToken" }
-            startTrackActivity()
             _loginCallback = callback
             _getToken = getToken
-            with(FSocialWechat.wxapi) {
-                val reqId = URLEncoder.encode(UUID.randomUUID().toString()).also {
-                    _reqId = it
-                }
-                val req = SendAuth.Req().apply {
-                    scope = "snsapi_userinfo"
-                    state = reqId
-                }
-                sendReq(req)
+            _reqId = System.currentTimeMillis().toString()
+
+            if (!startTrackActivity()) {
+                // 如果追踪Activity失败，则通知取消并返回
+                logMsg { "FSocialWechatLoginApi login track activity failed" }
+                notifyCancel()
+                return
             }
+
+            with(FSocialWechat) {
+                _appId = appId
+                _appSecret = appSecret
+
+                val req = SendAuth.Req().apply {
+                    this.scope = "snsapi_userinfo"
+                    this.state = _reqId
+                }
+                wxapi.sendReq(req)
+            }
+        } else {
+            callback.onCancel()
         }
     }
 
     internal fun handleResponse(resp: BaseResp) {
-        if (resp.type != ConstantsAPI.COMMAND_SENDAUTH) {
-            // 不是登录授权结果，不处理
-            return
-        }
-        logMsg { "FSocialWechatLoginApi handleResponse code:${resp.errCode}" }
+        if (!isLogin) return
+        if (resp.type != ConstantsAPI.COMMAND_SENDAUTH) return
+
+        logMsg { "FSocialWechatLoginApi handleResponse code:${resp.errCode} isLogin:$isLogin" }
         when (resp.errCode) {
             BaseResp.ErrCode.ERR_OK -> {
                 val authResp = resp as SendAuth.Resp
-                if (_reqId == authResp.state) {
+                if (authResp.state == _reqId) {
                     if (_getToken) {
                         getToken(authResp.code)
                     } else {
@@ -86,50 +99,60 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
 
     private fun getToken(code: String) {
         logMsg { "FSocialWechatLoginApi getToken" }
-        val url = with(FSocialWechat) {
-            "https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${appSecret}&code=${code}&grant_type=authorization_code"
-        }
+        val url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=${_appId}&secret=${_appSecret}&code=${code}&grant_type=authorization_code"
 
         _coroutineScope.launch {
             val request = HttpRequest.get(url).apply {
                 trustAllCerts()
                 trustAllHosts()
             }
-            withContext(Dispatchers.IO) {
-                try {
-                    val body = request.body()
-                    JSONObject(body).also { logMsg { "FSocialWechatLoginApi getToken success" } }
+
+            val response = withContext(Dispatchers.IO) {
+                val body = try {
+                    request.body().also { logMsg { "FSocialWechatLoginApi getToken success" } }
                 } catch (e: HttpRequest.HttpRequestException) {
                     e.printStackTrace()
                     logMsg { "FSocialWechatLoginApi getToken error $e" }
                     null
                 }
-            }.let { response ->
-                if (response == null) {
-                    notifyError(-1, "error get token")
+
+                if (body == null) {
+                    null
                 } else {
-                    with(response) {
-                        WechatLoginResult(
-                            code = code,
-                            openId = optString("openid"),
-                            accessToken = optString("access_token")
-                        )
-                    }.let {
-                        notifySuccess(it)
-                        val refreshToken = response.optString("refresh_token")
-                        refreshToken(refreshToken)
+                    try {
+                        JSONObject(body).also { logMsg { "FSocialWechatLoginApi getToken parse json success" } }
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                        logMsg { "FSocialWechatLoginApi getToken parse json error $e" }
+                        null
                     }
                 }
+            }
+
+            ensureActive()
+            if (!isLogin) return@launch
+
+            if (response == null) {
+                notifyError(-1, "error get token")
+            } else {
+                val loginResult = WechatLoginResult(
+                    code = "",
+                    openId = response.optString("openid"),
+                    accessToken = response.optString("access_token")
+                )
+                notifySuccess(loginResult)
+
+                val refreshToken = response.optString("refresh_token")
+                refreshToken(refreshToken)
             }
         }
     }
 
     private fun refreshToken(refreshToken: String) {
         if (refreshToken.isEmpty()) return
+
         logMsg { "FSocialWechatLoginApi refreshToken" }
-        val url = with(FSocialWechat) {
-            "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=${appId}&grant_type=refresh_token&refresh_token=${refreshToken}"
-        }
+        val url = "https://api.weixin.qq.com/sns/oauth2/refresh_token?appid=${_appId}&grant_type=refresh_token&refresh_token=${refreshToken}"
 
         _coroutineScope.launch {
             val request = HttpRequest.get(url).apply {
@@ -138,9 +161,7 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
             }
             withContext(Dispatchers.IO) {
                 try {
-                    request.body().also {
-                        logMsg { "FSocialWechatLoginApi refreshToken success" }
-                    }
+                    request.body().also { logMsg { "FSocialWechatLoginApi refreshToken success" } }
                 } catch (e: HttpRequest.HttpRequestException) {
                     e.printStackTrace()
                     logMsg { "FSocialWechatLoginApi refreshToken error $e" }
@@ -171,9 +192,14 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
         if (_isLogin.get()) {
             logMsg { "FSocialWechatLoginApi resetState" }
             stopTrackActivity()
+
             _loginCallback = null
-            _reqId = ""
             _getToken = false
+            _reqId = ""
+
+            _appId = ""
+            _appSecret = ""
+
             _isLogin.set(false)
         }
     }
