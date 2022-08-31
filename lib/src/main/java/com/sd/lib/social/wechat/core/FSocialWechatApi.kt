@@ -8,13 +8,20 @@ import java.lang.ref.WeakReference
 abstract class FSocialWechatApi {
     private var _trackActivityRef: WeakReference<Activity>? = null
 
-    protected fun startTrackActivity() {
-        val activity = FSocialWechat.topActivity ?: return
-        if (activity.isFinishing) return
+    /**
+     * 开始追踪Activity
+     */
+    protected fun startTrackActivity(): Boolean {
+        val activity = FSocialWechat.topActivity ?: return false
+        if (activity.isFinishing) return false
         _trackActivityRef = WeakReference(activity)
         logMsg { "${javaClass.simpleName} startTrackActivity $activity" }
+        return true
     }
 
+    /**
+     * 停止追踪Activity
+     */
     protected fun stopTrackActivity() {
         if (_trackActivityRef != null) {
             _trackActivityRef = null
@@ -44,7 +51,7 @@ abstract class FSocialWechatApi {
     }
 
     internal fun onActivityDestroyed(activity: Activity) {
-        if (_trackActivityRef?.get() === activity && activity.isFinishing) {
+        if (_trackActivityRef?.get() === activity) {
             logMsg { "${javaClass.simpleName} onTrackActivityDestroyed" }
             stopTrackActivity()
             onTrackActivityDestroyed()
