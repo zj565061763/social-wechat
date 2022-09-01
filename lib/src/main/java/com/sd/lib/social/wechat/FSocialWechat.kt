@@ -99,12 +99,6 @@ object FSocialWechat {
 
     private val _activityCallback by lazy {
         object : ActivityCallback() {
-            override fun onActivityStarted(activity: Activity) {
-                super.onActivityStarted(activity)
-                FSocialWechatLoginApi.onActivityStarted(activity)
-                FSocialWechatShareApi.onActivityStarted(activity)
-            }
-
             override fun onActivityResumed(activity: Activity) {
                 super.onActivityResumed(activity)
                 FSocialWechatLoginApi.onActivityResumed(activity)

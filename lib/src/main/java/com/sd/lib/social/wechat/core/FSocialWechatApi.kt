@@ -29,13 +29,6 @@ abstract class FSocialWechatApi {
         }
     }
 
-    internal fun onActivityStarted(activity: Activity) {
-        if (_trackActivityRef?.get() === activity) {
-            logMsg { "${javaClass.simpleName} onTrackActivityStarted" }
-            onTrackActivityStarted()
-        }
-    }
-
     internal fun onActivityResumed(activity: Activity) {
         if (_trackActivityRef?.get() === activity) {
             logMsg { "${javaClass.simpleName} onTrackActivityResumed" }
@@ -56,9 +49,6 @@ abstract class FSocialWechatApi {
             stopTrackActivity()
             onTrackActivityDestroyed()
         }
-    }
-
-    protected open fun onTrackActivityStarted() {
     }
 
     protected open fun onTrackActivityResumed() {
