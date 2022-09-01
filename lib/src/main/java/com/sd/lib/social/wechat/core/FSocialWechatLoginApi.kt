@@ -80,12 +80,10 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
                 val authResp = resp as SendAuth.Resp
                 if (authResp.state == _reqId) {
                     if (_getToken) {
-                        getToken(authResp.code)
+                        getToken(_appId, _appSecret, authResp.code)
                     } else {
                         notifySuccess(WechatLoginResult(authResp.code, "", ""))
                     }
-                } else {
-                    notifyError(-1, "unknown state ${authResp.state}")
                 }
             }
             BaseResp.ErrCode.ERR_USER_CANCEL,
@@ -97,9 +95,22 @@ object FSocialWechatLoginApi : FSocialWechatApi() {
         }
     }
 
-    private fun getToken(code: String) {
+    private fun getToken(appId: String, appSecret: String, code: String) {
+        if (appId.isEmpty()) {
+            notifyError(-1, "appId is empty")
+            return
+        }
+        if (appSecret.isEmpty()) {
+            notifyError(-1, "appSecret is empty")
+            return
+        }
+        if (code.isEmpty()) {
+            notifyError(-1, "code is empty")
+            return
+        }
+
         logMsg { "FSocialWechatLoginApi getToken" }
-        val url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=${_appId}&secret=${_appSecret}&code=${code}&grant_type=authorization_code"
+        val url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${appSecret}&code=${code}&grant_type=authorization_code"
 
         _coroutineScope.launch {
             val request = HttpRequest.get(url).apply {
